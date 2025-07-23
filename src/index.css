@@ -1,0 +1,47 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Utility classes for colors */
+.bg-red-400 { background-color: #f87171; }
+.bg-orange-400 { background-color: #fb923c; }
+.bg-yellow-400 { background-color: #facc15; }
+.bg-green-400 { background-color: #4ade80; }
+.bg-blue-400 { background-color: #60a5fa; }
+.bg-purple-400 { background-color: #c084fc; }
+.bg-pink-400 { background-color: #f472b6; }
+
+/* Hover effects */
+button:hover:not(:disabled) {
+  transform: scale(1.05) !important;
+  transition: transform 0.2s ease;
+}
+
+/* Animation for bounce effect */
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { 
+    transform: translateY(0); 
+  }
+  40% { 
+    transform: translateY(-10px); 
+  }
+  60% { 
+    transform: translateY(-5px); 
+  }
+}
+
+.bounce {
+  animation: bounce 2s infinite;
+}
