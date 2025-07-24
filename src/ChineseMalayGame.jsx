@@ -1,46 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 const ChineseMalayGame = () => {
-  // 音效功能
-  const playSound = (frequency, duration, type = 'sine') => {
-    if (!window.AudioContext && !window.webkitAudioContext) return;
-    
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    oscillator.frequency.value = frequency;
-    oscillator.type = type;
-    
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + duration);
-  };
-
-  const playCorrectSound = () => {
-    // 播放成功音效：上升的音调
-    playSound(523, 0.1); // C5
-    setTimeout(() => playSound(659, 0.1), 100); // E5
-    setTimeout(() => playSound(784, 0.2), 200); // G5
-  };
-
-  const playWrongSound = () => {
-    // 播放错误音效：下降的音调
-    playSound(400, 0.3, 'sawtooth');
-  };
-
-  const playCompleteSound = () => {
-    // 播放完成音效：胜利音调
-    playSound(523, 0.1); // C5
-    setTimeout(() => playSound(659, 0.1), 100); // E5
-    setTimeout(() => playSound(784, 0.1), 200); // G5
-    setTimeout(() => playSound(1047, 0.3), 300); // C6
-  };
   const wordPairs = [
     { chinese: '交通工具', malay: 'kenderaan' },
     { chinese: '状况', malay: 'situasi' },
@@ -160,19 +120,15 @@ const ChineseMalayGame = () => {
 
   // 生成随机字母
   const generateRandomLetter = () => {
-    // 创建字母池：目标单词的所有字母 + 常见字母
-    const targetLetters = targetWord.split('');
-    const commonLetters = 'abcdefghijklmnopqrstuvwxyz '.split('');
+    const nextNeededLetter = targetWord[builtWord.length];
+    const allLetters = 'abcdefghijklmnopqrstuvwxyz ';
     
-    // 混合目标字母和随机字母，目标字母出现更多次以增加几率
-    const letterPool = [
-      ...targetLetters, // 目标单词的字母各出现一次
-      ...targetLetters, // 目标单词的字母再出现一次（增加几率）
-      ...commonLetters  // 随机字母
-    ];
-    
-    // 从字母池中随机选择
-    return letterPool[Math.floor(Math.random() * letterPool.length)];
+    // 增加到80%几率给出正确字母，让游戏更容易
+    if (Math.random() < 0.8 && nextNeededLetter) {
+      return nextNeededLetter;
+    } else {
+      return allLetters[Math.floor(Math.random() * allLetters.length)];
+    }
   };
 
   // 创建粒子效果
@@ -232,14 +188,14 @@ const ChineseMalayGame = () => {
         letter: letter,
         x: Math.random() * (gameWidth - 50),
         y: -30,
-        speed: 2.5 + Math.random() * 1.5, // 加快速度
+        speed: 2.5 + Math.random() * 1.5, // 增加掉落速度
         rotation: Math.random() * 360,
         rotationSpeed: (Math.random() - 0.5) * 5, // 减慢旋转
         color: getLetterColor(letter),
         wobble: Math.random() * Math.PI * 2
       };
       setFallingLetters(prev => [...prev, newLetter]);
-    }, 1200); // 减少密集度，增加间隔
+    }, 1000); // 减少间隔时间，让字母掉落更频繁
 
     return () => clearInterval(interval);
   }, [gameState, builtWord, targetWord]);
@@ -274,7 +230,6 @@ const ChineseMalayGame = () => {
               setCatcherEmotion('🤩');
               createParticles(letter.x + 20, letter.y + 20, true);
               showMessage('正确！Betul!', 'success');
-              playCorrectSound();
               
               setTimeout(() => setCatcherEmotion('😊'), 1000);
             } else {
@@ -283,7 +238,6 @@ const ChineseMalayGame = () => {
               setCatcherEmotion('😵');
               createParticles(letter.x + 20, letter.y + 20, false);
               showMessage('错误！Salah!', 'error');
-              playWrongSound();
               
               setTimeout(() => setCatcherEmotion('😊'), 800);
             }
@@ -309,7 +263,6 @@ const ChineseMalayGame = () => {
       setCatcherEmotion('🎉');
       createParticles(catcher.x + 50, catcher.y, true);
       showMessage(`完成了！单词: ${targetWord}`, 'success');
-      playCompleteSound();
     }
   }, [builtWord, targetWord, gameState]);
 
@@ -354,118 +307,50 @@ const ChineseMalayGame = () => {
   const currentPair = wordPairs[currentWordIndex];
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      padding: '20px', 
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
-      minHeight: '100vh',
-      fontFamily: 'Arial, sans-serif'
-    }}>
-      <h1 style={{ 
-        fontSize: '2.5rem', 
-        fontWeight: 'bold', 
-        color: 'white', 
-        marginBottom: '20px', 
-        textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-        animation: 'bounce 2s infinite'
-      }}>
+    <div className="flex flex-col items-center p-4 bg-gradient-to-br from-purple-400 via-pink-300 to-blue-400 min-h-screen">
+      <h1 className="text-4xl font-bold text-white mb-4 drop-shadow-lg animate-bounce">
         🎮 中文马来文字母游戏 🎮
       </h1>
       
-      <p style={{ 
-        color: 'white', 
-        fontSize: '1.2rem', 
-        marginBottom: '20px', 
-        textAlign: 'center',
-        backgroundColor: 'rgba(255,255,255,0.2)',
-        padding: '10px 20px',
-        borderRadius: '25px',
-        backdropFilter: 'blur(10px)'
-      }}>
+      <p className="text-white text-lg mb-4 text-center bg-white bg-opacity-20 px-6 py-2 rounded-full backdrop-blur">
         看中文词语，接住字母拼出马来文单词！
       </p>
 
       {/* 游戏信息 */}
-      <div style={{ 
-        display: 'flex', 
-        gap: '20px', 
-        marginBottom: '20px', 
-        color: 'white', 
-        fontWeight: 'bold',
-        flexWrap: 'wrap',
-        justifyContent: 'center'
-      }}>
-        <div style={{ 
-          backgroundColor: 'rgba(255,255,255,0.2)', 
-          padding: '10px 20px', 
-          borderRadius: '25px', 
-          backdropFilter: 'blur(10px)' 
-        }}>
+      <div className="flex gap-4 mb-4 text-white font-bold flex-wrap justify-center">
+        <div className="bg-white bg-opacity-20 px-4 py-2 rounded-full backdrop-blur">
           关卡: {level} 🎯
         </div>
-        <div style={{ 
-          backgroundColor: 'rgba(255,255,255,0.2)', 
-          padding: '10px 20px', 
-          borderRadius: '25px', 
-          backdropFilter: 'blur(10px)' 
-        }}>
+        <div className="bg-white bg-opacity-20 px-4 py-2 rounded-full backdrop-blur">
           得分: {score} 🏆
         </div>
-        <div style={{ 
-          backgroundColor: 'rgba(255,255,255,0.2)', 
-          padding: '10px 20px', 
-          borderRadius: '25px', 
-          backdropFilter: 'blur(10px)' 
-        }}>
+        <div className="bg-white bg-opacity-20 px-4 py-2 rounded-full backdrop-blur">
           进度: {builtWord.length}/{targetWord.length} 📝
         </div>
       </div>
 
       {/* 中文词语显示 */}
-      <div style={{ 
-        background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)', 
-        padding: '20px 40px', 
-        borderRadius: '20px', 
-        marginBottom: '20px', 
-        boxShadow: '0 8px 16px rgba(0,0,0,0.3)',
-        border: '4px solid white'
-      }}>
-        <div style={{ 
-          fontSize: '2.5rem', 
-          fontWeight: 'bold', 
-          color: '#8b0000', 
-          textShadow: '2px 2px 4px rgba(0,0,0,0.3)' 
-        }}>
+      <div className="bg-gradient-to-br from-yellow-300 to-orange-400 px-8 py-4 rounded-2xl mb-4 shadow-lg border-4 border-white">
+        <div className="text-4xl font-bold text-red-800 drop-shadow-lg">
           {currentPair.chinese}
         </div>
       </div>
 
       {/* 游戏区域 */}
-      <div style={{ 
-        position: 'relative', 
-        border: '4px solid white', 
-        borderRadius: '12px', 
-        overflow: 'hidden', 
-        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-        marginBottom: '20px',
-        width: gameWidth, 
-        height: gameHeight, 
-        background: 'linear-gradient(to bottom, #87CEEB 0%, #98FB98 70%, #90EE90 100%)'
-      }}>
+      <div 
+        className="relative border-4 border-white rounded-xl overflow-hidden shadow-2xl mb-4"
+        style={{ width: gameWidth, height: gameHeight, background: 'linear-gradient(to bottom, #87CEEB 0%, #98FB98 70%, #90EE90 100%)' }}
+      >
         {/* 云朵 */}
         {clouds.map(cloud => (
           <div
             key={cloud.id}
+            className="absolute text-white opacity-60"
             style={{ 
-              position: 'absolute',
               left: cloud.x, 
               top: cloud.y, 
               fontSize: cloud.size,
-              opacity: 0.6,
-              filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.1))',
-              color: 'white'
+              filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.1))'
             }}
           >
             ☁️
@@ -476,14 +361,13 @@ const ChineseMalayGame = () => {
         {particles.map(particle => (
           <div
             key={particle.id}
+            className="absolute pointer-events-none"
             style={{ 
-              position: 'absolute',
               left: particle.x, 
               top: particle.y,
               opacity: particle.life,
               fontSize: particle.size,
-              transform: `scale(${particle.life})`,
-              pointerEvents: 'none'
+              transform: `scale(${particle.life})`
             }}
           >
             {particle.color}
@@ -494,27 +378,8 @@ const ChineseMalayGame = () => {
         {fallingLetters.map(letter => (
           <div
             key={letter.id}
+            className={`absolute w-12 h-12 ${letter.color} border-3 border-white rounded-lg flex items-center justify-center font-bold text-white text-xl shadow-lg cursor-pointer hover:scale-110 transition-transform`}
             style={{ 
-              position: 'absolute',
-              width: '48px',
-              height: '48px',
-              backgroundColor: getLetterColor(letter.letter) === 'bg-red-400' ? '#f87171' :
-                              getLetterColor(letter.letter) === 'bg-orange-400' ? '#fb923c' :
-                              getLetterColor(letter.letter) === 'bg-yellow-400' ? '#facc15' :
-                              getLetterColor(letter.letter) === 'bg-green-400' ? '#4ade80' :
-                              getLetterColor(letter.letter) === 'bg-blue-400' ? '#60a5fa' :
-                              getLetterColor(letter.letter) === 'bg-purple-400' ? '#c084fc' : '#f472b6',
-              border: '3px solid white',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 'bold',
-              color: 'white',
-              fontSize: '1.5rem',
-              boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-              cursor: 'pointer',
-              transition: 'transform 0.1s',
               left: letter.x, 
               top: letter.y,
               transform: `rotate(${letter.rotation}deg)`,
@@ -528,7 +393,6 @@ const ChineseMalayGame = () => {
                 setCatcherEmotion('🤩');
                 createParticles(letter.x + 20, letter.y + 20, true);
                 showMessage('正确！Betul!', 'success');
-                playCorrectSound();
                 
                 setTimeout(() => setCatcherEmotion('😊'), 1000);
               } else {
@@ -536,7 +400,6 @@ const ChineseMalayGame = () => {
                 setCatcherEmotion('😵');
                 createParticles(letter.x + 20, letter.y + 20, false);
                 showMessage('错误！Salah!', 'error');
-                playWrongSound();
                 
                 setTimeout(() => setCatcherEmotion('😊'), 800);
               }
@@ -550,12 +413,8 @@ const ChineseMalayGame = () => {
 
         {/* 接取器 */}
         <div
+          className="absolute bg-gradient-to-br from-orange-400 to-red-500 border-4 border-white rounded-full shadow-lg"
           style={{ 
-            position: 'absolute',
-            background: 'linear-gradient(135deg, #fb923c 0%, #ef4444 100%)',
-            border: '4px solid white',
-            borderRadius: '50%',
-            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
             left: catcher.x, 
             top: catcher.y, 
             width: catcherWidth, 
@@ -563,201 +422,68 @@ const ChineseMalayGame = () => {
             filter: 'drop-shadow(4px 4px 8px rgba(0,0,0,0.3))'
           }}
         >
-          <div style={{ 
-            width: '100%', 
-            height: '100%', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            fontSize: '2rem' 
-          }}>
+          <div className="w-full h-full flex items-center justify-center text-3xl">
             {catcherEmotion}
           </div>
-          <div style={{ 
-            position: 'absolute', 
-            top: '-8px', 
-            left: '50%', 
-            transform: 'translateX(-50%)', 
-            color: '#facc15', 
-            fontSize: '1.5rem' 
-          }}>
+          <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 text-yellow-400 text-2xl">
             ⭐
           </div>
         </div>
       </div>
 
       {/* 已拼单词显示 */}
-      <div style={{ 
-        backgroundColor: 'rgba(255,255,255,0.2)', 
-        backdropFilter: 'blur(10px)', 
-        padding: '20px', 
-        borderRadius: '12px', 
-        marginBottom: '20px', 
-        minHeight: '80px', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        border: '2px solid white',
-        minWidth: '300px'
-      }}>
-        <div style={{ 
-          fontSize: '1.5rem', 
-          fontWeight: 'bold', 
-          color: '#facc15', 
-          textShadow: '2px 2px 4px rgba(0,0,0,0.5)', 
-          minHeight: '40px', 
-          display: 'flex', 
-          alignItems: 'center' 
-        }}>
+      <div className="bg-white bg-opacity-20 backdrop-blur px-6 py-4 rounded-xl mb-4 min-h-[80px] flex items-center justify-center border-2 border-white">
+        <div className="text-2xl font-bold text-yellow-300 drop-shadow-lg min-h-[40px] flex items-center">
           {builtWord || '准备开始...'}
         </div>
       </div>
 
       {/* 消息显示 */}
-      <div style={{ 
-        fontSize: '1.2rem', 
-        fontWeight: 'bold', 
-        marginBottom: '20px', 
-        padding: '15px 25px', 
-        borderRadius: '8px', 
-        minHeight: '50px', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        minWidth: '400px',
-        textAlign: 'center',
-        backgroundColor: messageType === 'success' ? 'rgba(34, 197, 94, 0.8)' :
-                         messageType === 'error' ? 'rgba(239, 68, 68, 0.8)' :
-                         'rgba(255,255,255,0.2)',
-        color: 'white'
-      }}>
+      <div className={`text-lg font-bold mb-4 px-4 py-2 rounded-lg min-h-[50px] flex items-center justify-center ${
+        messageType === 'success' ? 'bg-green-400 bg-opacity-80 text-white' :
+        messageType === 'error' ? 'bg-red-400 bg-opacity-80 text-white' :
+        'bg-white bg-opacity-20 text-white'
+      }`}>
         {message}
       </div>
 
       {/* 控制按钮 */}
-      <div style={{ 
-        display: 'flex', 
-        gap: '15px', 
-        flexWrap: 'wrap', 
-        justifyContent: 'center' 
-      }}>
+      <div className="flex gap-4 flex-wrap justify-center">
         <button
           onClick={startGame}
           disabled={gameState === 'playing'}
-          style={{ 
-            padding: '12px 24px', 
-            background: gameState === 'playing' ? 'rgba(107, 114, 128, 0.5)' : 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)', 
-            color: 'white', 
-            borderRadius: '25px', 
-            border: 'none',
-            fontWeight: 'bold', 
-            fontSize: '1.1rem', 
-            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-            cursor: gameState === 'playing' ? 'not-allowed' : 'pointer',
-            transform: gameState === 'playing' ? 'none' : 'scale(1)',
-            transition: 'all 0.2s'
-          }}
-          onMouseOver={(e) => {
-            if (gameState !== 'playing') {
-              e.target.style.transform = 'scale(1.05)';
-            }
-          }}
-          onMouseOut={(e) => {
-            if (gameState !== 'playing') {
-              e.target.style.transform = 'scale(1)';
-            }
-          }}
+          className="px-6 py-3 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-full hover:from-green-500 hover:to-blue-600 disabled:opacity-50 font-bold text-lg shadow-lg transform hover:scale-105 transition-all"
         >
           🔊 开始 START
         </button>
         
         <button
           onClick={resetWord}
-          style={{ 
-            padding: '12px 24px', 
-            background: 'linear-gradient(135deg, #ef4444 0%, #ec4899 100%)', 
-            color: 'white', 
-            borderRadius: '25px', 
-            border: 'none',
-            fontWeight: 'bold', 
-            fontSize: '1.1rem', 
-            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-          }}
-          onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
-          onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+          className="px-6 py-3 bg-gradient-to-r from-red-400 to-pink-500 text-white rounded-full hover:from-red-500 hover:to-pink-600 font-bold text-lg shadow-lg transform hover:scale-105 transition-all"
         >
           🔄 重置 RESET
         </button>
         
         <button
           onClick={nextWord}
-          style={{ 
-            padding: '12px 24px', 
-            background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)', 
-            color: 'white', 
-            borderRadius: '25px', 
-            border: 'none',
-            fontWeight: 'bold', 
-            fontSize: '1.1rem', 
-            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-          }}
-          onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
-          onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+          className="px-6 py-3 bg-gradient-to-r from-purple-400 to-indigo-500 text-white rounded-full hover:from-purple-500 hover:to-indigo-600 font-bold text-lg shadow-lg transform hover:scale-105 transition-all"
         >
           ➡️ 下一个 NEXT
         </button>
         
         <button
           onClick={repeatChinese}
-          style={{ 
-            padding: '12px 24px', 
-            background: 'linear-gradient(135deg, #facc15 0%, #f97316 100%)', 
-            color: 'white', 
-            borderRadius: '25px', 
-            border: 'none',
-            fontWeight: 'bold', 
-            fontSize: '1.1rem', 
-            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-          }}
-          onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
-          onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+          className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full hover:from-yellow-500 hover:to-orange-600 font-bold text-lg shadow-lg transform hover:scale-105 transition-all"
         >
           🔊 重复 REPEAT
         </button>
       </div>
 
       {/* 操作说明 */}
-      <div style={{ 
-        marginTop: '20px', 
-        color: 'white', 
-        textAlign: 'center', 
-        backgroundColor: 'rgba(255,255,255,0.2)', 
-        padding: '20px', 
-        borderRadius: '12px', 
-        backdropFilter: 'blur(10px)',
-        maxWidth: '600px'
-      }}>
-        <p style={{ fontSize: '1.2rem', fontWeight: 'bold', margin: '0 0 10px 0' }}>
-          🎮 点击掉落的字母或用 ← → 键移动接取器
-        </p>
-        <p style={{ fontSize: '1rem', margin: 0 }}>
-          听中文发音，按顺序拼出马来文单词！
-        </p>
+      <div className="mt-4 text-white text-center bg-white bg-opacity-20 p-4 rounded-xl backdrop-blur">
+        <p className="text-lg font-bold">🎮 点击掉落的字母或用 ← → 键移动接取器</p>
+        <p className="text-base">听中文发音，按顺序拼出马来文单词！</p>
       </div>
-
-      <style>{`
-        @keyframes bounce {
-          0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-          40% { transform: translateY(-10px); }
-          60% { transform: translateY(-5px); }
-        }
-      `}</style>
     </div>
   );
 };
