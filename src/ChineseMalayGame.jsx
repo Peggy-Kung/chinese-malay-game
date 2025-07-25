@@ -17,7 +17,7 @@ const ChineseMalayGame = () => {
   const [targetWord, setTargetWord] = useState('');
   const [builtWord, setBuiltWord] = useState('');
   const [fallingLetters, setFallingLetters] = useState([]);
-  const [catcher, setCatcher] = useState({ x: 350, y: 520 });
+  const [catcher, setCatcher] = useState({ x: 350, y: 520 }); // 固定位置，不再移动
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
   const [gameState, setGameState] = useState('ready'); // ready, playing, completed
@@ -123,8 +123,8 @@ const ChineseMalayGame = () => {
     const nextNeededLetter = targetWord[builtWord.length];
     const allLetters = 'abcdefghijklmnopqrstuvwxyz ';
     
-    // 增加到80%几率给出正确字母，让游戏更容易
-    if (Math.random() < 0.8 && nextNeededLetter) {
+    // 增加到85%几率给出正确字母，确保有足够的关键字母
+    if (Math.random() < 0.85 && nextNeededLetter) {
       return nextNeededLetter;
     } else {
       return allLetters[Math.floor(Math.random() * allLetters.length)];
@@ -161,21 +161,7 @@ const ChineseMalayGame = () => {
     return () => clearInterval(particleInterval);
   }, []);
 
-  // 键盘控制
-  const handleKeyPress = useCallback((event) => {
-    if (gameState !== 'playing') return;
-    
-    if (event.key === 'ArrowLeft') {
-      setCatcher(prev => ({ ...prev, x: Math.max(0, prev.x - 40) }));
-    } else if (event.key === 'ArrowRight') {
-      setCatcher(prev => ({ ...prev, x: Math.min(gameWidth - catcherWidth, prev.x + 40) }));
-    }
-  }, [gameState]);
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [handleKeyPress]);
+  // 移除了键盘左右移动控制，现在只使用点击操作
 
   // 生成掉落字母
   useEffect(() => {
@@ -218,30 +204,9 @@ const ChineseMalayGame = () => {
         let newScore = score;
         let newBuiltWord = builtWord;
 
+        // 只保留还在屏幕内的字母，移除了碰撞检测系统
         updated.forEach(letter => {
-          if (letter.y >= catcher.y - 40 && letter.y <= catcher.y + 40 &&
-              letter.x >= catcher.x - 40 && letter.x <= catcher.x + catcherWidth + 40) {
-            
-            const nextNeededLetter = targetWord[builtWord.length];
-            if (letter.letter === nextNeededLetter) {
-              // 正确字母
-              newBuiltWord += letter.letter;
-              newScore += 10;
-              setCatcherEmotion('🤩');
-              createParticles(letter.x + 20, letter.y + 20, true);
-              showMessage('正确！Betul!', 'success');
-              
-              setTimeout(() => setCatcherEmotion('😊'), 1000);
-            } else {
-              // 错误字母
-              newScore = Math.max(0, newScore - 3);
-              setCatcherEmotion('😵');
-              createParticles(letter.x + 20, letter.y + 20, false);
-              showMessage('错误！Salah!', 'error');
-              
-              setTimeout(() => setCatcherEmotion('😊'), 800);
-            }
-          } else if (letter.y < gameHeight - 50) {
+          if (letter.y < gameHeight - 50) {
             remaining.push(letter);
           }
         });
@@ -481,8 +446,9 @@ const ChineseMalayGame = () => {
 
       {/* 操作说明 */}
       <div className="mt-4 text-white text-center bg-white bg-opacity-20 p-4 rounded-xl backdrop-blur">
-        <p className="text-lg font-bold">🎮 点击掉落的字母或用 ← → 键移动接取器</p>
-        <p className="text-base">听中文发音，按顺序拼出马来文单词！</p>
+        <p className="text-lg font-bold">🖱️ 直接点击掉落的正确字母！</p>
+        <p className="text-base">听中文发音，按顺序点击字母拼出马来文单词！</p>
+        <p className="text-sm opacity-90">💡 提示：85% 的掉落字母是你需要的正确字母</p>
       </div>
     </div>
   );
