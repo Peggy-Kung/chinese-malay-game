@@ -27,8 +27,9 @@ const ChineseMalayGame = () => {
   const [message, setMessage] = useState('点击开始按钮开始游戏！');
   const [messageType, setMessageType] = useState('');
   
-  const gameWidth = 800;
-  const gameHeight = 600;
+  // 响应式游戏区域尺寸，适应手机和桌面
+  const gameWidth = Math.min(800, window.innerWidth - 40);
+  const gameHeight = Math.min(600, window.innerHeight * 0.6);
   const catcherWidth = 100;
 
   // 初始化游戏
@@ -272,39 +273,43 @@ const ChineseMalayGame = () => {
   const currentPair = wordPairs[currentWordIndex];
 
   return (
-    <div className="flex flex-col items-center p-4 bg-gradient-to-br from-purple-400 via-pink-300 to-blue-400 min-h-screen">
-      <h1 className="text-4xl font-bold text-white mb-4 drop-shadow-lg animate-bounce">
+    <div className="flex flex-col items-center p-2 sm:p-4 bg-gradient-to-br from-purple-400 via-pink-300 to-blue-400 min-h-screen">
+      <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2 sm:mb-4 drop-shadow-lg animate-bounce text-center">
         🎮 中文马来文字母游戏 🎮
       </h1>
       
-      <p className="text-white text-lg mb-4 text-center bg-white bg-opacity-20 px-6 py-2 rounded-full backdrop-blur">
+      <p className="text-white text-sm sm:text-lg mb-2 sm:mb-4 text-center bg-white bg-opacity-20 px-4 sm:px-6 py-2 rounded-full backdrop-blur">
         看中文词语，接住字母拼出马来文单词！
       </p>
 
       {/* 游戏信息 */}
-      <div className="flex gap-4 mb-4 text-white font-bold flex-wrap justify-center">
-        <div className="bg-white bg-opacity-20 px-4 py-2 rounded-full backdrop-blur">
+      <div className="flex gap-2 sm:gap-4 mb-2 sm:mb-4 text-white font-bold flex-wrap justify-center text-sm sm:text-base">
+        <div className="bg-white bg-opacity-20 px-2 sm:px-4 py-1 sm:py-2 rounded-full backdrop-blur">
           关卡: {level} 🎯
         </div>
-        <div className="bg-white bg-opacity-20 px-4 py-2 rounded-full backdrop-blur">
+        <div className="bg-white bg-opacity-20 px-2 sm:px-4 py-1 sm:py-2 rounded-full backdrop-blur">
           得分: {score} 🏆
         </div>
-        <div className="bg-white bg-opacity-20 px-4 py-2 rounded-full backdrop-blur">
+        <div className="bg-white bg-opacity-20 px-2 sm:px-4 py-1 sm:py-2 rounded-full backdrop-blur">
           进度: {builtWord.length}/{targetWord.length} 📝
         </div>
       </div>
 
       {/* 中文词语显示 */}
-      <div className="bg-gradient-to-br from-yellow-300 to-orange-400 px-8 py-4 rounded-2xl mb-4 shadow-lg border-4 border-white">
-        <div className="text-4xl font-bold text-red-800 drop-shadow-lg">
+      <div className="bg-gradient-to-br from-yellow-300 to-orange-400 px-4 sm:px-8 py-2 sm:py-4 rounded-2xl mb-2 sm:mb-4 shadow-lg border-2 sm:border-4 border-white">
+        <div className="text-2xl sm:text-4xl font-bold text-red-800 drop-shadow-lg text-center">
           {currentPair.chinese}
         </div>
       </div>
 
       {/* 游戏区域 */}
       <div 
-        className="relative border-4 border-white rounded-xl overflow-hidden shadow-2xl mb-4"
-        style={{ width: gameWidth, height: gameHeight, background: 'linear-gradient(to bottom, #87CEEB 0%, #98FB98 70%, #90EE90 100%)' }}
+        className="relative border-4 border-white rounded-xl overflow-hidden shadow-2xl mb-4 w-full max-w-4xl mx-auto"
+        style={{ 
+          width: `min(800px, calc(100vw - 2rem))`, 
+          height: `min(600px, 60vh)`, 
+          background: 'linear-gradient(to bottom, #87CEEB 0%, #98FB98 70%, #90EE90 100%)' 
+        }}
       >
         {/* 云朵 */}
         {clouds.map(cloud => (
@@ -397,8 +402,8 @@ const ChineseMalayGame = () => {
       </div>
 
       {/* 已拼单词显示 */}
-      <div className="bg-white bg-opacity-20 backdrop-blur px-6 py-4 rounded-xl mb-4 min-h-[80px] flex items-center justify-center border-2 border-white">
-        <div className="text-2xl font-bold text-yellow-300 drop-shadow-lg min-h-[40px] flex items-center">
+      <div className="bg-white bg-opacity-20 backdrop-blur px-3 sm:px-6 py-2 sm:py-4 rounded-xl mb-2 sm:mb-4 min-h-[60px] sm:min-h-[80px] flex items-center justify-center border-2 border-white w-full max-w-md">
+        <div className="text-lg sm:text-2xl font-bold text-yellow-300 drop-shadow-lg min-h-[30px] sm:min-h-[40px] flex items-center text-center">
           {builtWord || '准备开始...'}
         </div>
       </div>
@@ -413,42 +418,42 @@ const ChineseMalayGame = () => {
       </div>
 
       {/* 控制按钮 */}
-      <div className="flex gap-4 flex-wrap justify-center">
+      <div className="flex gap-2 sm:gap-4 flex-wrap justify-center">
         <button
           onClick={startGame}
           disabled={gameState === 'playing'}
-          className="px-6 py-3 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-full hover:from-green-500 hover:to-blue-600 disabled:opacity-50 font-bold text-lg shadow-lg transform hover:scale-105 transition-all"
+          className="px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-full hover:from-green-500 hover:to-blue-600 disabled:opacity-50 font-bold text-sm sm:text-lg shadow-lg transform hover:scale-105 transition-all"
         >
           🔊 开始 START
         </button>
         
         <button
           onClick={resetWord}
-          className="px-6 py-3 bg-gradient-to-r from-red-400 to-pink-500 text-white rounded-full hover:from-red-500 hover:to-pink-600 font-bold text-lg shadow-lg transform hover:scale-105 transition-all"
+          className="px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-red-400 to-pink-500 text-white rounded-full hover:from-red-500 hover:to-pink-600 font-bold text-sm sm:text-lg shadow-lg transform hover:scale-105 transition-all"
         >
           🔄 重置 RESET
         </button>
         
         <button
           onClick={nextWord}
-          className="px-6 py-3 bg-gradient-to-r from-purple-400 to-indigo-500 text-white rounded-full hover:from-purple-500 hover:to-indigo-600 font-bold text-lg shadow-lg transform hover:scale-105 transition-all"
+          className="px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-purple-400 to-indigo-500 text-white rounded-full hover:from-purple-500 hover:to-indigo-600 font-bold text-sm sm:text-lg shadow-lg transform hover:scale-105 transition-all"
         >
           ➡️ 下一个 NEXT
         </button>
         
         <button
           onClick={repeatChinese}
-          className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full hover:from-yellow-500 hover:to-orange-600 font-bold text-lg shadow-lg transform hover:scale-105 transition-all"
+          className="px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full hover:from-yellow-500 hover:to-orange-600 font-bold text-sm sm:text-lg shadow-lg transform hover:scale-105 transition-all"
         >
           🔊 重复 REPEAT
         </button>
       </div>
 
       {/* 操作说明 */}
-      <div className="mt-4 text-white text-center bg-white bg-opacity-20 p-4 rounded-xl backdrop-blur">
-        <p className="text-lg font-bold">🖱️ 直接点击掉落的正确字母！</p>
-        <p className="text-base">听中文发音，按顺序点击字母拼出马来文单词！</p>
-        <p className="text-sm opacity-90">💡 提示：85% 的掉落字母是你需要的正确字母</p>
+      <div className="mt-2 sm:mt-4 text-white text-center bg-white bg-opacity-20 p-3 sm:p-4 rounded-xl backdrop-blur">
+        <p className="text-base sm:text-lg font-bold">🖱️ 直接点击掉落的正确字母！</p>
+        <p className="text-sm sm:text-base">听中文发音，按顺序点击字母拼出马来文单词！</p>
+        <p className="text-xs sm:text-sm opacity-90">💡 提示：85% 的掉落字母是你需要的正确字母</p>
       </div>
     </div>
   );
